@@ -1,6 +1,17 @@
 {% extends 'todo/base.html' %}
 
 {% block content %}
-<h1>Hi there</h1>
+<h2>You have {{ todos.count }} note{{ todos.count|pluralize }}</h2>
+
+<ul>
+    {% for todo in todos %}
+    <li>
+        <a style="text-decoration: none" href="{% url 'viewtodo' todo.id%}">
+            {% if todo.importance %}<b>{% endif %}{{ todo.title }}{% if todo.importance %}</b>{% endif %}
+            {% if todo.memo %} - {{ todo.memo }}{% endif %}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
 
 {% endblock %}

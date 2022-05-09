@@ -1,9 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.contrib.auth import login, logout, authenticate
 from .forms import ToDoForm
+from .models import Todo
 
 
 def home(request):
@@ -30,7 +31,8 @@ def signupuser(request):
 
 
 def currenttodos(request):
-    return render(request, 'todo/currenttodos.html')
+    todos = Todo.objects.filter(user=request.user, completed__isnull=True)
+    return render(request, 'todo/currenttodos.html', {'todos': todos})
 
 
 def loginuser(request):
@@ -44,6 +46,20 @@ def loginuser(request):
         else:
             login(request, user)
             return redirect('currenttodos')
+
+
+def viewtodo(request, todo_pk):
+    todo = get_object_or_404(Todo, pk=todo_pk, user=request.user)
+    if request.method == 'GET':
+        form = ToDoForm(instance=todo)
+        return render(request, 'todo/viewtodo.html', {'todo': todo, 'form': form})
+    else:
+        try:
+            form = ToDoForm(request.POST, instance=todo)
+            form.save()
+            return redirect('currenttodos')
+        except ValueError:
+            return render(request, 'todo/viewtodo.html', {'todo': todo, 'form': form, 'error': 'Bad info'})
 
 
 def logoutuser(request):
@@ -63,4 +79,5 @@ def createtodo(request):
             newtodo.save()
             return redirect('currenttodos')
         except ValueError:
-            return render(request, 'todo/createtodo.html', {'form': ToDoForm(), 'error': 'Bad data passed in. Try again.'})
+            return render(request, 'todo/createtodo.html',
+                          {'form': ToDoForm(), 'error': 'Bad data passed in. Try again.'})
