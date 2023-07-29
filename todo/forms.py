@@ -1,8 +1,14 @@
-from django.forms import ModelForm
-from .models import Todo
+from django import forms
+from .models import User, Task
 
 
-class ToDoForm(ModelForm):
+class UserForm(forms.ModelForm):
     class Meta:
-        model = Todo
-        fields = ['title', 'memo', 'importance']
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'password']
+
+
+class TaskForm(forms.ModelForm):
+    class Meta:
+        model = Task
+        fields = ['title', 'description', 'status', 'user']

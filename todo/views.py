@@ -1,109 +1,41 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth.models import User
-from django.db import IntegrityError
-from django.contrib.auth import login, logout, authenticate
-from .forms import ToDoForm
-from .models import Todo
-from django.utils import timezone
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from rest_framework import generics, permissions
+from .models import Task
+from .serializers import TaskSerializer
+from .permissions import IsOwnerOrReadOnly
 
 
-def home(request):
-    return render(request, 'todo/home.html')
+# Get a list of all tasks.Create a new task
+class TaskListCreateView(generics.ListCreateAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+
+    # Set the owner of the task to the current user
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
-def signupuser(request):
-    if request.method == 'GET':
-        return render(request, 'todo/signupuser.html', {'form': UserCreationForm()})
-    else:
-        if request.POST['password1'] == request.POST['password2']:
-            try:
-                user = User.objects.create_user(request.POST['username'], password=request.POST['password1'])
-                user.save()
-                login(request, user)
-                return redirect('currenttodos')
-            except IntegrityError:
-                return render(request, 'todo/signupuser.html',
-                              {'form': UserCreationForm(),
-                               'error': 'That username has already been taken. Please choose another one'})
-        else:
-            return render(request, 'todo/signupuser.html',
-                          {'form': UserCreationForm(), 'error': 'Passwords did not match'})
+# Get a list of all user's tasks
+class UserTaskListView(generics.ListAPIView):
+    serializer_class = TaskSerializer
+
+    # This method helps us to get a task list for a current user
+    def get_queryset(self):
+        user_id = self.kwargs['user_id']
+        return Task.objects.filter(user_id=user_id)
 
 
-@login_required
-def currenttodos(request):
-    todos = Todo.objects.filter(user=request.user, completed__isnull=True)
-    return render(request, 'todo/currenttodos.html', {'todos': todos})
+# Get information about a specific task. Update task information. Delete a task
+class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
 
+    # Set the owner of the task to the current user
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
 
-@login_required
-def completedtodos(request):
-    todos = Todo.objects.filter(user=request.user, completed__isnull=False).order_by('-completed')
-    return render(request, 'todo/completedtodos.html', {'todos': todos})
-
-
-def loginuser(request):
-    if request.method == 'GET':
-        return render(request, 'todo/loginuser.html', {'form': AuthenticationForm()})
-    else:
-        user = authenticate(request, username=request.POST['username'], password=request.POST['password'])
-        if user is None:
-            return render(request, 'todo/loginuser.html', {'form': AuthenticationForm(),
-                                                           'error': 'Username and password did not match'})
-        else:
-            login(request, user)
-            return redirect('currenttodos')
-
-@login_required
-def viewtodo(request, todo_pk):
-    todo = get_object_or_404(Todo, pk=todo_pk, user=request.user)
-    if request.method == 'GET':
-        form = ToDoForm(instance=todo)
-        return render(request, 'todo/viewtodo.html', {'todo': todo, 'form': form})
-    else:
-        try:
-            form = ToDoForm(request.POST, instance=todo)
-            form.save()
-            return redirect('currenttodos')
-        except ValueError:
-            return render(request, 'todo/viewtodo.html', {'todo': todo, 'form': form, 'error': 'Bad info'})
-
-
-@login_required
-def logoutuser(request):
-    if request.method == 'POST':
-        logout(request)
-        return redirect('home')
-
-
-@login_required
-def createtodo(request):
-    if request.method == 'GET':
-        return render(request, 'todo/createtodo.html', {'form': ToDoForm()})
-    else:
-        try:
-            form = ToDoForm(request.POST)
-            newtodo = form.save(commit=False)
-            newtodo.user = request.user
-            newtodo.save()
-            return redirect('currenttodos')
-        except ValueError:
-            return render(request, 'todo/createtodo.html',
-                          {'form': ToDoForm(), 'error': 'Bad data passed in. Try again.'})
-
-@login_required
-def completetodo(request, todo_pk):
-    todo = get_object_or_404(Todo, pk=todo_pk, user=request.user)
-    if request.method == 'POST':
-        todo.completed = timezone.now()
-        todo.save()
-        return redirect('currenttodos')
-
-@login_required
-def deletetodo(request, todo_pk):
-    todo = get_object_or_404(Todo, pk=todo_pk, user=request.user)
-    if request.method == 'POST':
-        todo.delete()
-        return redirect('currenttodos')
+    # Check if user can delete a task (if he is a task-owner)
+    def perform_destroy(self, instance):
+        if instance.user == self.request.user:
+            instance.delete()
