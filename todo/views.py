@@ -1,5 +1,8 @@
-from django.shortcuts import render
-from rest_framework import generics, permissions
+from django.http import HttpResponse
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
 from .models import Task
 from .serializers import TaskSerializer
 from .permissions import IsOwnerOrReadOnly
@@ -39,3 +42,30 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance):
         if instance.user == self.request.user:
             instance.delete()
+
+
+# Marking a task as completed
+class MarkTaskCompletedView(APIView):
+    def patch(self, request, task_id):
+        try:
+            task = Task.objects.get(pk=task_id)
+        except Task.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        task.status = 'Completed'
+        task.save()
+        serializer = TaskSerializer(task)
+        return Response(serializer.data)
+
+
+# Filtering tasks by status
+class FilterTasksByStatusView(APIView):
+    def get(self, request):
+        status_param = request.query_params.get('status', None)
+        if status_param is not None:
+            tasks = Task.objects.filter(status=status_param)
+        else:
+            tasks = Task.objects.all()
+
+        serializer = TaskSerializer(tasks, many=True)
+        return Response(serializer.data)
