@@ -1,6 +1,8 @@
 from django.contrib import admin
-from todo.models import Task, User
+from django.contrib.auth.models import User
+
+from todo.models import Task
 
 
 admin.site.register(Task)
-admin.site.register(User)
+

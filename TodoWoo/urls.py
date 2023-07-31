@@ -19,12 +19,10 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView, TokenVerifyView,
 )
 
-from todo.views import TaskListCreateView, UserTaskListView, TaskDetailView, MarkTaskCompletedView, \
-    FilterTasksByStatusView
+from todo.views import TaskAPIView, MarkTaskCompletedAPIView, FilterTasksByStatusAPIView
 
 from django.contrib import admin
 from django.urls import path
-
 
 urlpatterns = [
     # Admin
@@ -34,16 +32,17 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
+
     # Tasks
     # Get a list of all tasks. Create a new task.
-    path('tasks/', TaskListCreateView.as_view(), name='task-list-create'),
+    path('tasks/', TaskAPIView.as_view(), name='task-list-create'),
     # Get a list of all user's tasks.
-    path('tasks/user/<int:user_id>/', UserTaskListView.as_view(), name='user-task-list'),
+    path('tasks/user/<int:user_id>/', TaskAPIView.as_view(), name='user-task-list'),
     # Get information about a specific task. Update task information. Delete a task.
-    path('tasks/<int:pk>/', TaskDetailView.as_view(), name='task-detail'),
+    path('tasks/<int:pk>/', TaskAPIView.as_view(), name='task-detail'),
     # Marking a task as completed
-    path('tasks/<int:task_id>/mark-completed/', MarkTaskCompletedView.as_view(), name='mark-task-completed'),
+    path('tasks/<int:task_id>/mark-completed/', MarkTaskCompletedAPIView.as_view(), name='mark-task-completed'),
     # Filtering tasks by status
-    path('tasks/filter/', FilterTasksByStatusView.as_view(), name='filter-tasks-by-status'),
+    path('tasks/filter/', FilterTasksByStatusAPIView.as_view(), name='filter-tasks-by-status'),
 
 ]

@@ -1,26 +1,5 @@
 from django.db import models
-from django.core.exceptions import ValidationError
-
-
-# Minimal length chars validator
-def validate_min_length(value, min_length=6):
-    if len(value) < min_length:
-        raise ValidationError(
-            f'The password should be at least {min_length} characters long.',
-            params={'min_length': min_length},
-        )
-
-
-# Model for users
-class User(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name = models.TextField(blank=True, null=True)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128, validators=[validate_min_length])
-
-    def __str__(self):
-        return self.first_name
-
+from django.contrib.auth.models import User
 
 # Model for tasks
 class Task(models.Model):
@@ -38,3 +17,4 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
+
