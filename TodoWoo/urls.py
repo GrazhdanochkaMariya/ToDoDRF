@@ -14,17 +14,39 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework import permissions
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView, TokenVerifyView,
 )
 
-from todo.views import TaskAPIView, MarkTaskCompletedAPIView, FilterTasksByStatusAPIView
+from todo.views import MarkTaskCompletedAPIView, FilterTasksByStatusAPIView, TaskListCreateAPIView, \
+    TaskDetailAPIView
 
 from django.contrib import admin
 from django.urls import path
 
+schema_view = get_schema_view(
+    openapi.Info(
+        title="Swagger First Blog ",
+        default_version='v1',
+        description="Test Swagger First Blog",
+        terms_of_service="https://www.ourapp.com/policies/terms/",
+        contact=openapi.Contact(email="contact@swaggerBlog.local"),
+        license=openapi.License(name="Test License"),
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
+
 urlpatterns = [
+    # Swagger
+    path('', schema_view.with_ui('swagger', cache_timeout=0),
+         name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc',
+                                       cache_timeout=0), name='schema-redoc'),
     # Admin
     path('admin/', admin.site.urls),
 
@@ -35,13 +57,14 @@ urlpatterns = [
 
     # Tasks
     # Get a list of all tasks. Create a new task.
-    path('tasks/', TaskAPIView.as_view(), name='task-list-create'),
+    # Get a list of all tasks. Create a new task.
+    path('tasks/', TaskListCreateAPIView.as_view(), name='task-list-create'),
     # Get a list of all user's tasks.
-    path('tasks/user/<int:user_id>/', TaskAPIView.as_view(), name='user-task-list'),
+    path('tasks/user/<int:user_id>/', TaskListCreateAPIView.as_view(), name='user-task-list'),
     # Get information about a specific task. Update task information. Delete a task.
-    path('tasks/<int:pk>/', TaskAPIView.as_view(), name='task-detail'),
+    path('tasks/<int:pk>/', TaskDetailAPIView.as_view(), name='task-detail'),
     # Marking a task as completed
-    path('tasks/<int:task_id>/mark-completed/', MarkTaskCompletedAPIView.as_view(), name='mark-task-completed'),
+    path('tasks/<int:pk>/mark-completed/', MarkTaskCompletedAPIView.as_view(), name='mark-task-completed'),
     # Filtering tasks by status
     path('tasks/filter/', FilterTasksByStatusAPIView.as_view(), name='filter-tasks-by-status'),
 

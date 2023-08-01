@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 # Model for tasks
 class Task(models.Model):
     # Choice tuples for status. First index for db savings, second for displaying.
@@ -17,4 +18,3 @@ class Task(models.Model):
 
     def __str__(self):
         return self.title
-

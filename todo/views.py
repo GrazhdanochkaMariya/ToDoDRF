@@ -1,5 +1,6 @@
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
+from rest_framework.generics import RetrieveUpdateDestroyAPIView, ListCreateAPIView
 
 from todo.models import Task
 from todo.serializers import TaskSerializer
@@ -17,19 +18,20 @@ class TaskBaseAPIView(generics.GenericAPIView):
         return obj
 
 
-# View class for tasks CRUD operations
-class TaskAPIView(TaskBaseAPIView, generics.ListCreateAPIView, generics.RetrieveUpdateDestroyAPIView):
+## Custom view class for retrieving, updating, and deleting a single task
+class TaskDetailAPIView(TaskBaseAPIView, RetrieveUpdateDestroyAPIView):
+    pass
 
-    # User`s task list
+
+# View class for retrieving a list of tasks for a user and creating a new task
+class TaskListCreateAPIView(TaskBaseAPIView, ListCreateAPIView):
+    # User's task list
     def get_queryset(self):
-        return Task.objects.filter(user=self.request.user)
+        return Task.objects.filter(user=self.request.user.id)
 
-    # Save the task
+    # Save the task with the current user
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
 
 
 # View class for marking 'completed'
