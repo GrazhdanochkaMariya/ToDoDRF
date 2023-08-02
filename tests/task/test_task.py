@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from todo.models import Task
+from tasks.models import Task
 
 
 @pytest.mark.django_db

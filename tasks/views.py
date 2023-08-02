@@ -1,16 +1,13 @@
 from django.contrib.auth.models import User
-from rest_framework import generics
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import (
-    RetrieveUpdateDestroyAPIView,
-    ListCreateAPIView,
-    CreateAPIView,
-)
+from rest_framework import generics
+from rest_framework.generics import (CreateAPIView, ListCreateAPIView,
+                                     RetrieveUpdateDestroyAPIView)
 from rest_framework.permissions import AllowAny
 
-from todo.models import Task
-from todo.permissions import IsOwnerOrReadOnly
-from todo.serializers import TaskSerializer, UserSerializer
+from tasks.models import Task
+from tasks.permissions import IsOwnerOrReadOnly
+from tasks.serializers import TaskSerializer, UserSerializer
 
 
 class TaskBaseAPIView(generics.GenericAPIView):
@@ -52,7 +49,6 @@ class MarkTaskCompletedAPIView(TaskBaseAPIView, generics.UpdateAPIView):
     """Mark the task as completed and save it."""
 
     def perform_update(self, serializer):
-
         serializer.instance.status = "Completed"
         serializer.save()
 
