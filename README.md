@@ -48,6 +48,11 @@ A simple RESTful API application for managing a task list (ToDo list) based on t
 2. Users
 - /users/create (Create a new user.)
 
+## Swagger
+You can find Swagger docs:
+- http://0.0.0.0:8000/ (Docker-compose)
+- http://127.0.0.1:8000/ (local)
+
 ## Tests
 Run tests:
 - pytest
