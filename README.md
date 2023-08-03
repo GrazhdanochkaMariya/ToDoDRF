@@ -8,7 +8,7 @@ A simple RESTful API application for managing a task list (ToDo list) based on t
 2. Add a file with environment variables (.env) to the root of the project
 
 3. Create a virtual environment and activate it:
-- python -m venv venv
+- python -m venv venv or python3 -m venv venv
   - . venv/Scripts/activate - Windows
   - source venv/bin/activate - Linux
   
